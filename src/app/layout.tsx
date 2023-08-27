@@ -1,8 +1,9 @@
-import './globals.css'
 import type { Metadata } from 'next'
-import { Atkinson_Hyperlegible as AtkinsonHyperlegible } from 'next/font/google'
+import { Roboto_Mono as RobotoMono } from 'next/font/google'
+import cn from 'classnames'
+import './globals.css'
 
-const atkinson = AtkinsonHyperlegible({ weight: '400', subsets: ['latin'] })
+const roboto = RobotoMono({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
   title: 'Cellular Automata',
@@ -11,7 +12,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: JSX.Element }) {
   return (
     <html lang="en">
-      <body className={atkinson.className}>{children}</body>
+      <body className={cn(roboto.className, 'bg-gray80')}>{children}</body>
     </html>
   )
 }
