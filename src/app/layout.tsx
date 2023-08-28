@@ -12,7 +12,9 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: JSX.Element }) {
   return (
     <html lang="en">
-      <body className={cn(roboto.className, 'bg-gray80')}>{children}</body>
+      <body className={cn(roboto.className, 'w-screen max-w-full bg-gray60')}>
+        {children}
+      </body>
     </html>
   )
 }
