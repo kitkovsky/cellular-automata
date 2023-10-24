@@ -5,13 +5,13 @@ import { Button } from '@/components/Button'
 import { drawRoundedRects } from '@/utils/canvas.utils'
 import { tailwindColors } from '~/tailwind.config'
 
-const ROWS_COUNT = 130
-const COLS_COUNT = 250
+const ROWS_COUNT = 200
+const COLS_COUNT = 300
 const CELL_SIZE = 6
 const GAP = 2
 const PADDING_OFFSET = 2
-const CANVAS_HEIGHT = ROWS_COUNT * (CELL_SIZE + GAP) + PADDING_OFFSET * 2 - GAP
 const CANVAS_WIDTH = COLS_COUNT * (CELL_SIZE + GAP) + PADDING_OFFSET * 2 - GAP
+const CANVAS_HEIGHT = ROWS_COUNT * (CELL_SIZE + GAP) + PADDING_OFFSET * 2 - GAP
 
 const operations = [
   [-1, -1],
@@ -29,6 +29,7 @@ export default function GameOfLifeCanvas() {
 
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const gridRef = useRef<boolean[][]>([])
+  const canvasContainerRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     if (!canvasRef.current) return
@@ -63,9 +64,53 @@ export default function GameOfLifeCanvas() {
     }
   }, [isRunning])
 
+  useEffect(() => {
+    if (!canvasContainerRef.current) return
+
+    const container = canvasContainerRef.current
+
+    container.scrollLeft = (CANVAS_WIDTH - container.clientWidth) / 2
+    container.scrollTop = (CANVAS_HEIGHT - container.clientHeight) / 2
+
+    let pos = { top: 0, left: 0, x: 0, y: 0 }
+
+    const mouseDownHandler = (e: MouseEvent): void => {
+      pos = {
+        left: container.scrollLeft,
+        top: container.scrollTop,
+        x: e.clientX,
+        y: e.clientY,
+      }
+
+      container.classList.remove('cursor-grab')
+      container.classList.add('cursor-grabbing')
+
+      document.addEventListener('mousemove', mouseMoveHandler)
+      document.addEventListener('mouseup', mouseUpHandler)
+    }
+
+    const mouseMoveHandler = (e: MouseEvent): void => {
+      const dx = e.clientX - pos.x
+      const dy = e.clientY - pos.y
+
+      container.scrollTop = pos.top - dy
+      container.scrollLeft = pos.left - dx
+    }
+
+    const mouseUpHandler = (): void => {
+      container.classList.remove('cursor-grabbing')
+      container.classList.add('cursor-grab')
+
+      document.removeEventListener('mousemove', mouseMoveHandler)
+      document.removeEventListener('mouseup', mouseUpHandler)
+    }
+
+    container.addEventListener('mousedown', mouseDownHandler)
+  }, [])
+
   return (
-    <div className="flex h-screen flex-col items-center justify-center">
-      <div className="mb-4 flex gap-4">
+    <div className="relative flex h-full max-h-screen flex-col items-center justify-center gap-4 py-4 md:py-6 lg:py-8">
+      <div className="flex gap-4">
         <Button onClick={() => setIsRunning((prev) => !prev)}>
           {isRunning ? 'stop' : 'start'}
         </Button>
@@ -79,8 +124,16 @@ export default function GameOfLifeCanvas() {
         </Button>
       </div>
 
-      <div className="rounded border border-white p-1">
-        <canvas width={CANVAS_WIDTH} height={CANVAS_HEIGHT} ref={canvasRef} />
+      <div
+        ref={canvasContainerRef}
+        className="h-full w-full cursor-grab overflow-auto rounded border border-white p-1"
+      >
+        <canvas
+          width={CANVAS_WIDTH}
+          height={CANVAS_HEIGHT}
+          ref={canvasRef}
+          className="h-fit w-fit"
+        />
       </div>
     </div>
   )
