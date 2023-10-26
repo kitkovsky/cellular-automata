@@ -133,6 +133,7 @@ export default function GameOfLifeCanvas() {
           height={CANVAS_HEIGHT}
           ref={canvasRef}
           className="h-fit w-fit"
+          style={{ imageRendering: 'pixelated' }}
         />
       </div>
     </div>
