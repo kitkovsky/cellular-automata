@@ -18,6 +18,9 @@ const config: Config = {
   ],
   theme: {
     colors: tailwindColors,
+    fontFamily: {
+      mono: ['var(--font-geist-mono)'],
+    },
   },
   plugins: [],
 }
