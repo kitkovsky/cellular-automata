@@ -1,5 +1,3 @@
-'use client'
-
 import { useEffect, type RefObject, type MutableRefObject } from 'react'
 import { useDraggableContainer } from '@/hooks/useDraggableContainer'
 
