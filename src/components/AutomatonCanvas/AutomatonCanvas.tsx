@@ -1,5 +1,11 @@
 import { useEffect, type RefObject, type MutableRefObject } from 'react'
 import { useDraggableContainer } from '@/hooks/useDraggableContainer'
+import { type tailwindColors } from '~/tailwind.config'
+
+export type GenericAutomatonCell<StateType> = {
+  state: StateType
+  color: (typeof tailwindColors)[keyof typeof tailwindColors]
+}
 
 export const canvasConfig = {
   rowsCount: 200,
@@ -23,17 +29,22 @@ export const canvasConfig = {
   },
 }
 
-export interface AutomatonCanvasProps<GridType> {
+export interface AutomatonCanvasProps<T> {
   canvasRef: RefObject<HTMLCanvasElement>
-  gridRef: MutableRefObject<GridType>
-  createGrid: (state: 'empty' | 'random') => GridType
-  updateGrid: (prevGrid: GridType) => GridType
-  drawGrid: (ctx: CanvasRenderingContext2D, grid: GridType) => void
+  gridRef: MutableRefObject<GenericAutomatonCell<T>[][]>
+  createGrid: (state: 'empty' | 'random') => GenericAutomatonCell<T>[][]
+  updateGrid: (
+    prevGrid: GenericAutomatonCell<T>[][],
+  ) => GenericAutomatonCell<T>[][]
+  drawGrid: (
+    ctx: CanvasRenderingContext2D,
+    grid: GenericAutomatonCell<T>[][],
+  ) => void
   isRunning: boolean
 }
 
-export const AutomatonCanvas = <GridType,>(
-  props: AutomatonCanvasProps<GridType>,
+export const AutomatonCanvas = <T,>(
+  props: AutomatonCanvasProps<T>,
 ): JSX.Element => {
   const { canvasRef, gridRef, createGrid, updateGrid, drawGrid, isRunning } =
     props

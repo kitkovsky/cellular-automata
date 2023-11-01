@@ -1,7 +1,28 @@
 import { type MutableRefObject, type RefObject } from 'react'
-import { canvasConfig } from '@/components/AutomatonCanvas'
+import {
+  canvasConfig,
+  type GenericAutomatonCell,
+} from '@/components/AutomatonCanvas'
 import { drawRoundedRects } from '@/utils/canvas.utils'
 import { tailwindColors } from '~/tailwind.config'
+
+enum SeedsCellState {
+  ON = 'on',
+  OFF = 'off',
+}
+
+export type SeedsCell = GenericAutomatonCell<SeedsCellState>
+
+const SEEDS_CELLS: Record<SeedsCellState, SeedsCell> = {
+  [SeedsCellState.ON]: {
+    state: SeedsCellState.ON,
+    color: tailwindColors.orange,
+  },
+  [SeedsCellState.OFF]: {
+    state: SeedsCellState.OFF,
+    color: tailwindColors.black,
+  },
+}
 
 const { rowsCount, colsCount, width, height, gap, paddingOffset, cellSize } =
   canvasConfig
@@ -16,8 +37,8 @@ const operations = [
   [1, 1],
 ] as const
 
-export const createGrid = (state: 'empty' | 'random'): boolean[][] => {
-  const rows: boolean[][] = []
+export const createGrid = (initialState: 'empty' | 'random'): SeedsCell[][] => {
+  const rows: SeedsCell[][] = []
   const randomCellsBoundaries = {
     rowsMin: rowsCount / 2 - 5,
     rowsMax: rowsCount / 2 + 5,
@@ -35,9 +56,15 @@ export const createGrid = (state: 'empty' | 'random'): boolean[][] => {
         colIdx >= randomCellsBoundaries.colsMin &&
         colIdx <= randomCellsBoundaries.colsMax
       ) {
-        rows[rowIdx].push(state === 'empty' ? false : Math.random() > 0.8)
+        if (initialState === 'empty') {
+          rows[rowIdx].push(SEEDS_CELLS.on)
+        } else {
+          rows[rowIdx].push(
+            Math.random() > 0.8 ? SEEDS_CELLS.on : SEEDS_CELLS.off,
+          )
+        }
       } else {
-        rows[rowIdx].push(false)
+        rows[rowIdx].push(SEEDS_CELLS.off)
       }
     }
   }
@@ -45,7 +72,7 @@ export const createGrid = (state: 'empty' | 'random'): boolean[][] => {
   return rows
 }
 
-export const updateGrid = (prevGrid: boolean[][]): boolean[][] => {
+export const updateGrid = (prevGrid: SeedsCell[][]): SeedsCell[][] => {
   const nextGrid = createGrid('empty')
 
   for (let rowIdx = 0; rowIdx < rowsCount; rowIdx++) {
@@ -58,13 +85,20 @@ export const updateGrid = (prevGrid: boolean[][]): boolean[][] => {
         const newRow = (rowIdx + x + rowsCount) % rowsCount
         const newCol = (colIdx + y + colsCount) % colsCount
 
-        neighbors += prevGrid[newRow][newCol] ? 1 : 0
+        if (
+          (prevGrid[newRow][newCol].state as SeedsCellState) ===
+          SeedsCellState.ON
+        )
+          neighbors++
       })
 
-      if (!cell && neighbors === 2) {
-        nextGrid[rowIdx][colIdx] = true
+      if (
+        (cell.state as SeedsCellState) === SeedsCellState.OFF &&
+        neighbors === 2
+      ) {
+        nextGrid[rowIdx][colIdx] = SEEDS_CELLS.on
       } else {
-        nextGrid[rowIdx][colIdx] = false
+        nextGrid[rowIdx][colIdx] = SEEDS_CELLS.off
       }
     }
   }
@@ -74,40 +108,42 @@ export const updateGrid = (prevGrid: boolean[][]): boolean[][] => {
 
 export const drawGrid = (
   ctx: CanvasRenderingContext2D,
-  grid: boolean[][],
+  grid: SeedsCell[][],
 ): void => {
   ctx.clearRect(0, 0, width(), height())
 
-  const aliveCells: number[][] = []
-  const deadCells: number[][] = []
+  const aliveCellsCoords: number[][] = []
+  const deadCellsCoords: number[][] = []
 
   grid.forEach((row, rowIdx) => {
     row.forEach((cell, cellIdx) => {
       const x = cellIdx * (cellSize + gap) + paddingOffset
       const y = rowIdx * (cellSize + gap) + paddingOffset
 
-      cell ? aliveCells.push([x, y]) : deadCells.push([x, y])
+      ;(cell.state as SeedsCellState) === SeedsCellState.ON
+        ? aliveCellsCoords.push([x, y])
+        : deadCellsCoords.push([x, y])
     })
   })
 
   drawRoundedRects({
     ctx,
-    coords: aliveCells,
-    color: tailwindColors.orange,
+    coords: aliveCellsCoords,
+    color: SEEDS_CELLS.on.color,
     w: cellSize,
     h: cellSize,
   })
   drawRoundedRects({
     ctx,
-    coords: deadCells,
-    color: tailwindColors.black,
+    coords: deadCellsCoords,
+    color: SEEDS_CELLS.off.color,
     w: cellSize,
     h: cellSize,
   })
 }
 
 export const randomizeGrid = (
-  gridRef: MutableRefObject<boolean[][]>,
+  gridRef: MutableRefObject<SeedsCell[][]>,
   canvasRef: RefObject<HTMLCanvasElement>,
 ): void => {
   gridRef.current = createGrid('random')
