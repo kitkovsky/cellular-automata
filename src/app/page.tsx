@@ -6,6 +6,9 @@ export default function HomePage() {
       <Link href="/game-of-life" className="text-7xl font-semibold">
         game of life
       </Link>
+      <Link href="/seeds" className="text-7xl font-semibold">
+        seeds
+      </Link>
     </main>
   )
 }
