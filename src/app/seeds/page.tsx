@@ -8,13 +8,14 @@ import {
   createGrid,
   updateGrid,
   drawGrid,
+  type SeedsCell,
 } from '@/automata-logic/seeds'
 
 export default function SeedsPage() {
   const [isRunning, setIsRunning] = useState(false)
 
   const canvasRef = useRef<HTMLCanvasElement>(null)
-  const gridRef = useRef<boolean[][]>([])
+  const gridRef = useRef<SeedsCell[][]>([])
 
   return (
     <div className="relative flex h-full max-h-screen flex-col items-center justify-center gap-4 py-4 md:py-6 lg:py-8">

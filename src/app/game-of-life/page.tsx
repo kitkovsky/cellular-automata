@@ -8,13 +8,14 @@ import {
   createGrid,
   updateGrid,
   drawGrid,
+  type GolCell,
 } from '@/automata-logic/gameOfLife'
 
 export default function GameOfLifeCanvas() {
   const [isRunning, setIsRunning] = useState(false)
 
   const canvasRef = useRef<HTMLCanvasElement>(null)
-  const gridRef = useRef<boolean[][]>([])
+  const gridRef = useRef<GolCell[][]>([])
 
   return (
     <div className="relative flex h-full max-h-screen flex-col items-center justify-center gap-4 py-4 md:py-6 lg:py-8">

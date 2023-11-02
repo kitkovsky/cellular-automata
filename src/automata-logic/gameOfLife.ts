@@ -1,7 +1,28 @@
 import { type MutableRefObject, type RefObject } from 'react'
-import { canvasConfig } from '@/components/AutomatonCanvas'
+import {
+  canvasConfig,
+  type GenericAutomatonCell,
+} from '@/components/AutomatonCanvas'
 import { drawRoundedRects } from '@/utils/canvas.utils'
 import { tailwindColors } from '~/tailwind.config'
+
+enum GolCellState {
+  ALIVE = 'alive',
+  DEAD = 'dead',
+}
+
+export type GolCell = GenericAutomatonCell<GolCellState>
+
+const GOL_CELLS: Record<GolCellState, GolCell> = {
+  [GolCellState.ALIVE]: {
+    state: GolCellState.ALIVE,
+    color: tailwindColors.orange,
+  },
+  [GolCellState.DEAD]: {
+    state: GolCellState.DEAD,
+    color: tailwindColors.black,
+  },
+}
 
 const { rowsCount, colsCount, width, height, gap, paddingOffset, cellSize } =
   canvasConfig
@@ -16,21 +37,27 @@ const operations = [
   [1, 1],
 ] as const
 
-export const createGrid = (state: 'empty' | 'random'): boolean[][] => {
-  const rows: boolean[][] = []
+export const createGrid = (initialState: 'empty' | 'random'): GolCell[][] => {
+  const rows: GolCell[][] = []
 
   for (let rowIdx = 0; rowIdx < rowsCount; rowIdx++) {
     rows.push([])
 
     for (let colIdx = 0; colIdx < colsCount; colIdx++) {
-      rows[rowIdx].push(state === 'empty' ? false : Math.random() > 0.8)
+      if (initialState === 'empty') {
+        rows[rowIdx].push(GOL_CELLS.alive)
+      } else {
+        rows[rowIdx].push(
+          Math.random() > 0.8 ? GOL_CELLS.alive : GOL_CELLS.dead,
+        )
+      }
     }
   }
 
   return rows
 }
 
-export const updateGrid = (prevGrid: boolean[][]): boolean[][] => {
+export const updateGrid = (prevGrid: GolCell[][]): GolCell[][] => {
   const nextGrid = createGrid('empty')
 
   for (let rowIdx = 0; rowIdx < rowsCount; rowIdx++) {
@@ -43,13 +70,20 @@ export const updateGrid = (prevGrid: boolean[][]): boolean[][] => {
         const newRow = (rowIdx + x + rowsCount) % rowsCount
         const newCol = (colIdx + y + colsCount) % colsCount
 
-        neighbors += prevGrid[newRow][newCol] ? 1 : 0
+        if (
+          (prevGrid[newRow][newCol].state as GolCellState) ===
+          GolCellState.ALIVE
+        )
+          neighbors++
       })
 
       if (neighbors < 2 || neighbors > 3) {
-        nextGrid[rowIdx][colIdx] = false
-      } else if (!cell && neighbors === 3) {
-        nextGrid[rowIdx][colIdx] = true
+        nextGrid[rowIdx][colIdx] = GOL_CELLS.dead
+      } else if (
+        (cell.state as GolCellState) === GolCellState.DEAD &&
+        neighbors === 3
+      ) {
+        nextGrid[rowIdx][colIdx] = GOL_CELLS.alive
       } else {
         nextGrid[rowIdx][colIdx] = cell
       }
@@ -61,40 +95,42 @@ export const updateGrid = (prevGrid: boolean[][]): boolean[][] => {
 
 export const drawGrid = (
   ctx: CanvasRenderingContext2D,
-  grid: boolean[][],
+  grid: GolCell[][],
 ): void => {
   ctx.clearRect(0, 0, width(), height())
 
-  const aliveCells: number[][] = []
-  const deadCells: number[][] = []
+  const aliveCellsCoords: number[][] = []
+  const deadCellsCoords: number[][] = []
 
   grid.forEach((row, rowIdx) => {
     row.forEach((cell, cellIdx) => {
       const x = cellIdx * (cellSize + gap) + paddingOffset
       const y = rowIdx * (cellSize + gap) + paddingOffset
 
-      cell ? aliveCells.push([x, y]) : deadCells.push([x, y])
+      ;(cell.state as GolCellState) === GolCellState.ALIVE
+        ? aliveCellsCoords.push([x, y])
+        : deadCellsCoords.push([x, y])
     })
   })
 
   drawRoundedRects({
     ctx,
-    coords: aliveCells,
-    color: tailwindColors.orange,
+    coords: aliveCellsCoords,
+    color: GOL_CELLS.alive.color,
     w: cellSize,
     h: cellSize,
   })
   drawRoundedRects({
     ctx,
-    coords: deadCells,
-    color: tailwindColors.black,
+    coords: deadCellsCoords,
+    color: GOL_CELLS.dead.color,
     w: cellSize,
     h: cellSize,
   })
 }
 
 export const randomizeGrid = (
-  gridRef: MutableRefObject<boolean[][]>,
+  gridRef: MutableRefObject<GolCell[][]>,
   canvasRef: RefObject<HTMLCanvasElement>,
 ): void => {
   gridRef.current = createGrid('random')
