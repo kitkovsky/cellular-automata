@@ -2,8 +2,8 @@ import { useEffect, type RefObject, type MutableRefObject } from 'react'
 import { useDraggableContainer } from '@/hooks/useDraggableContainer'
 import { type tailwindColors } from '~/tailwind.config'
 
-export type GenericAutomatonCell<StateType> = {
-  state: StateType
+export type GenericAutomatonCell<T> = {
+  state: T
   color: (typeof tailwindColors)[keyof typeof tailwindColors]
 }
 

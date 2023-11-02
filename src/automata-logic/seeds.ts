@@ -46,25 +46,28 @@ export const createGrid = (initialState: 'empty' | 'random'): SeedsCell[][] => {
     colsMax: colsCount / 2 + 5,
   }
 
+  const isInsideRandomCellsBoundaries = (
+    rowIdx: number,
+    colIdx: number,
+  ): boolean =>
+    rowIdx >= randomCellsBoundaries.rowsMin &&
+    rowIdx <= randomCellsBoundaries.rowsMax &&
+    colIdx >= randomCellsBoundaries.colsMin &&
+    colIdx <= randomCellsBoundaries.colsMax
+
   for (let rowIdx = 0; rowIdx < rowsCount; rowIdx++) {
     rows.push([])
 
     for (let colIdx = 0; colIdx < colsCount; colIdx++) {
       if (
-        rowIdx >= randomCellsBoundaries.rowsMin &&
-        rowIdx <= randomCellsBoundaries.rowsMax &&
-        colIdx >= randomCellsBoundaries.colsMin &&
-        colIdx <= randomCellsBoundaries.colsMax
+        initialState === 'empty' ||
+        !isInsideRandomCellsBoundaries(rowIdx, colIdx)
       ) {
-        if (initialState === 'empty') {
-          rows[rowIdx].push(SEEDS_CELLS.on)
-        } else {
-          rows[rowIdx].push(
-            Math.random() > 0.8 ? SEEDS_CELLS.on : SEEDS_CELLS.off,
-          )
-        }
-      } else {
         rows[rowIdx].push(SEEDS_CELLS.off)
+      } else {
+        rows[rowIdx].push(
+          Math.random() > 0.8 ? SEEDS_CELLS.on : SEEDS_CELLS.off,
+        )
       }
     }
   }
@@ -79,23 +82,17 @@ export const updateGrid = (prevGrid: SeedsCell[][]): SeedsCell[][] => {
     for (let colIdx = 0; colIdx < colsCount; colIdx++) {
       const cell = prevGrid[rowIdx][colIdx]
 
-      let neighbors = 0
+      let onNeighborsCount = 0
 
       operations.forEach(([x, y]) => {
         const newRow = (rowIdx + x + rowsCount) % rowsCount
         const newCol = (colIdx + y + colsCount) % colsCount
 
-        if (
-          (prevGrid[newRow][newCol].state as SeedsCellState) ===
-          SeedsCellState.ON
-        )
-          neighbors++
+        if (prevGrid[newRow][newCol].state === SeedsCellState.ON)
+          onNeighborsCount++
       })
 
-      if (
-        (cell.state as SeedsCellState) === SeedsCellState.OFF &&
-        neighbors === 2
-      ) {
+      if (cell.state === SeedsCellState.OFF && onNeighborsCount === 2) {
         nextGrid[rowIdx][colIdx] = SEEDS_CELLS.on
       } else {
         nextGrid[rowIdx][colIdx] = SEEDS_CELLS.off
@@ -120,7 +117,7 @@ export const drawGrid = (
       const x = cellIdx * (cellSize + gap) + paddingOffset
       const y = rowIdx * (cellSize + gap) + paddingOffset
 
-      ;(cell.state as SeedsCellState) === SeedsCellState.ON
+      cell.state === SeedsCellState.ON
         ? aliveCellsCoords.push([x, y])
         : deadCellsCoords.push([x, y])
     })

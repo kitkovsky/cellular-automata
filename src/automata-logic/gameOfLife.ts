@@ -6,20 +6,20 @@ import {
 import { drawRoundedRects } from '@/utils/canvas.utils'
 import { tailwindColors } from '~/tailwind.config'
 
-enum GolCellState {
+enum GoLCellState {
   ALIVE = 'alive',
   DEAD = 'dead',
 }
 
-export type GolCell = GenericAutomatonCell<GolCellState>
+export type GoLCell = GenericAutomatonCell<GoLCellState>
 
-const GOL_CELLS: Record<GolCellState, GolCell> = {
-  [GolCellState.ALIVE]: {
-    state: GolCellState.ALIVE,
+const GOL_CELLS: Record<GoLCellState, GoLCell> = {
+  [GoLCellState.ALIVE]: {
+    state: GoLCellState.ALIVE,
     color: tailwindColors.orange,
   },
-  [GolCellState.DEAD]: {
-    state: GolCellState.DEAD,
+  [GoLCellState.DEAD]: {
+    state: GoLCellState.DEAD,
     color: tailwindColors.black,
   },
 }
@@ -37,15 +37,15 @@ const operations = [
   [1, 1],
 ] as const
 
-export const createGrid = (initialState: 'empty' | 'random'): GolCell[][] => {
-  const rows: GolCell[][] = []
+export const createGrid = (initialState: 'empty' | 'random'): GoLCell[][] => {
+  const rows: GoLCell[][] = []
 
   for (let rowIdx = 0; rowIdx < rowsCount; rowIdx++) {
     rows.push([])
 
     for (let colIdx = 0; colIdx < colsCount; colIdx++) {
       if (initialState === 'empty') {
-        rows[rowIdx].push(GOL_CELLS.alive)
+        rows[rowIdx].push(GOL_CELLS.dead)
       } else {
         rows[rowIdx].push(
           Math.random() > 0.8 ? GOL_CELLS.alive : GOL_CELLS.dead,
@@ -57,31 +57,31 @@ export const createGrid = (initialState: 'empty' | 'random'): GolCell[][] => {
   return rows
 }
 
-export const updateGrid = (prevGrid: GolCell[][]): GolCell[][] => {
+export const updateGrid = (prevGrid: GoLCell[][]): GoLCell[][] => {
   const nextGrid = createGrid('empty')
 
   for (let rowIdx = 0; rowIdx < rowsCount; rowIdx++) {
     for (let colIdx = 0; colIdx < colsCount; colIdx++) {
       const cell = prevGrid[rowIdx][colIdx]
 
-      let neighbors = 0
+      let aliveNeighborsCount = 0
 
       operations.forEach(([x, y]) => {
         const newRow = (rowIdx + x + rowsCount) % rowsCount
         const newCol = (colIdx + y + colsCount) % colsCount
 
-        if (
-          (prevGrid[newRow][newCol].state as GolCellState) ===
-          GolCellState.ALIVE
-        )
-          neighbors++
+        if (prevGrid[newRow][newCol].state === GoLCellState.ALIVE)
+          aliveNeighborsCount++
       })
 
-      if (neighbors < 2 || neighbors > 3) {
+      if (
+        cell.state === GoLCellState.ALIVE &&
+        (aliveNeighborsCount < 2 || aliveNeighborsCount > 3)
+      ) {
         nextGrid[rowIdx][colIdx] = GOL_CELLS.dead
       } else if (
-        (cell.state as GolCellState) === GolCellState.DEAD &&
-        neighbors === 3
+        cell.state === GoLCellState.DEAD &&
+        aliveNeighborsCount === 3
       ) {
         nextGrid[rowIdx][colIdx] = GOL_CELLS.alive
       } else {
@@ -95,7 +95,7 @@ export const updateGrid = (prevGrid: GolCell[][]): GolCell[][] => {
 
 export const drawGrid = (
   ctx: CanvasRenderingContext2D,
-  grid: GolCell[][],
+  grid: GoLCell[][],
 ): void => {
   ctx.clearRect(0, 0, width(), height())
 
@@ -107,7 +107,7 @@ export const drawGrid = (
       const x = cellIdx * (cellSize + gap) + paddingOffset
       const y = rowIdx * (cellSize + gap) + paddingOffset
 
-      ;(cell.state as GolCellState) === GolCellState.ALIVE
+      cell.state === GoLCellState.ALIVE
         ? aliveCellsCoords.push([x, y])
         : deadCellsCoords.push([x, y])
     })
@@ -130,7 +130,7 @@ export const drawGrid = (
 }
 
 export const randomizeGrid = (
-  gridRef: MutableRefObject<GolCell[][]>,
+  gridRef: MutableRefObject<GoLCell[][]>,
   canvasRef: RefObject<HTMLCanvasElement>,
 ): void => {
   gridRef.current = createGrid('random')
