@@ -4,7 +4,7 @@ import cn from 'classnames'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'Cellular Automata',
+  title: 'Delightful Animations',
 }
 
 export default function RootLayout({ children }: { children: JSX.Element }) {
