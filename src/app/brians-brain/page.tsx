@@ -11,7 +11,7 @@ import {
   type BBCell,
 } from '@/automata-logic/briansBrain'
 
-export default function GameOfLifeCanvas() {
+export default function BriansBrainPage() {
   const [isRunning, setIsRunning] = useState(false)
 
   const canvasRef = useRef<HTMLCanvasElement>(null)

@@ -11,7 +11,7 @@ import {
   type GoLCell,
 } from '@/automata-logic/gameOfLife'
 
-export default function GameOfLifeCanvas() {
+export default function GameOfLifePage() {
   const [isRunning, setIsRunning] = useState(false)
 
   const canvasRef = useRef<HTMLCanvasElement>(null)
