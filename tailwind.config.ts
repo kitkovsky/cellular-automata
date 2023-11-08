@@ -8,6 +8,9 @@ export const tailwindColors = {
   black: '#232427',
   orange: '#e2b514',
   'dark-orange': '#bc9710',
+  green: '#98971a',
+  aqua: '#689d6a',
+  red: '#cc241d',
 } as const
 
 const config: Config = {
