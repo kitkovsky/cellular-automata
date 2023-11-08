@@ -15,6 +15,7 @@ export default function HomePage() {
           {name}
         </Link>
       ))}
+      <h1>this is new</h1>
     </main>
   )
 }
