@@ -5,6 +5,7 @@ export default function HomePage() {
     { name: 'game-of-life', href: '/game-of-life' },
     { name: 'seeds', href: '/seeds' },
     { name: "brian's brain", href: '/brians-brain' },
+    { name: 'wildfire', href: '/wildfire' },
   ]
 
   return (
